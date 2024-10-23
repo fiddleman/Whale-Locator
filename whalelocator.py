@@ -1,5 +1,5 @@
 from math import sin, cos, asin, acos, atan2, sqrt, pi
-from bisect import bisect_left
+from numpy import arange
 
 #===================================================================================#
 #                                   CONSTANTS                                       #
@@ -29,6 +29,46 @@ obsLongDeg                 = -118.4107                                          
 targetBearingDeg           = 270                                                        #
 hMiles                     = 143.5 / feetInMile                                         #
 #=======================================================================================#
+
+#
+# Reticle to Mills Table
+#
+retToMils = {
+    0:0.001,
+    0.1:0.5,
+    0.2:1,
+    0.4:2,
+    0.6:3,
+    0.8:4,
+    1:5,
+    1.2:6,
+    1.4:7,
+    1.6:8,
+    1.8:9,
+    2:10,
+    2.4:12,
+    2.6:13,
+    3:15,
+    3.4:17,
+    4:20,
+    4.6:23,
+    5:25,
+    6:30,
+    7:35,
+    8:40,
+    9:45,
+    10:50,
+    11:55,
+    12:60,
+    13:65,
+    14:70,
+    15:75,
+    16:80,
+    17:85,
+    18:90,
+    19:95,
+    20:100
+}
 
 #
 # Here is the formula to find the second point, when first point, bearing and distance is known:
@@ -66,17 +106,33 @@ def milsToDistance1(mils, h):
 def milsToDistance2(mils, h):
     return round(sqrt(((Rmiles + h) ** 2) - (Rmiles ** 2))/mils, 4)
 
+def binarySearch(needle, haystack):
+    first = 0
+    itemList = list(haystack)
+    last = len(itemList) - 1
+    while first <= last:
+        mid = (first + last) // 2
+        if itemList[mid] == needle:
+            return needle
+        elif needle < itemList[mid]:
+            last = mid - 1
+        else:
+            first = mid + 1
+
+    low = itemList[mid - 1]
+    high = itemList[mid]
+    if abs(needle - high) <= abs(needle - low):
+        return high
+    else:
+        return low
+    
 def reticleToMils(reticle):
-    return reticle
+    return retToMils[binarySearch(round(reticle, 1), retToMils.keys())]
 
 def dumpLatLongTable():
-    print(f"reticle  LookupMil        Dist1         Dist2")
-    for reticle in (0.001, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 15, 17, 20, 23, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100):
+    for reticle in arange(0, 20.1, 0.1):
         mils = reticleToMils(reticle)
-        print(CalculateNewPositoin(obsLatDeg, obsLongDeg, hMiles, targetBearingDeg, mils))
-
-        # print(f"{reticle:7}  {mils:9}   {milsToDistance1(mils, hMiles):10}    {milsToDistance2(mils, hMiles):10}")
-    print(f"reticle  LookupMil        Dist1         Dist2")
+        print(mils, CalculateNewPositoin(obsLatDeg, obsLongDeg, hMiles, targetBearingDeg, mils))
 
 
 #
