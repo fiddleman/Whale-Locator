@@ -1,3 +1,5 @@
+#!/opt/homebrew/anaconda3/bin/python
+
 from math import sin, cos, asin, acos, atan2, sqrt, pi
 from haversine import haversine, inverse_haversine, inverse_haversine_vector, Unit, Direction
 from numpy import arange
@@ -12,25 +14,153 @@ feetInMile                  = 5280                  # Number of feet in a mile
 #===================================================================================#
 #                            UNIT CONVERSIONS FACTORS                               #
 #===================================================================================#
-milesToNauticalMiles        = 0.868976
-milesToMeters               = 1609.34
-milesToFeet                 = 5280
+feetToMiles                 = 0.000189394
+feetToMeters                = 0.30480030800000379454
+feetToKilometers            = 0.0003048000097536
+feetToNauticalMiles         = 0.000164579
 
-nauticalMilesToMiles        = 1.15078
+milesToFeet                 = 5280
+milesToMeters               = 1609.34
+milesToKilometers           = 1.60934
+milesToNauticalMiles        = 0.868976
+
+metersToFeet                = 3.28084
 metersToMiles               = 0.000621371
-feetToMiles                 = 0.00018939388080000001
+metersToKilometers          = 0.001
+metersToNauticalMiles       = 0.000539957349081371537
+
+kilometersToFeet            = 3280.84
+kilometersToMiles           = 0.621371
+kilometersToMeters          = 1000
+kilometersToNauticalMiles   = 0.53995734908137149599
+
+nauticalMilesToFeet         = 6076.11568
+nauticalMilesToMiles        = 1.15078
+nauticalMilesToMeters       = 1852.000059264
+nauticalMilesToKilometers   = 1.852
 
 degreesToRadians            = pi / 180
 radiansToDegrees            = 180 / pi
 #===================================================================================#
 
+class Location:
+        def __init__(self, lat, lon, h, lUnit = Unit.DEGREES, hUnit = Unit.MILES):
+            self.lat   = lat
+            self.lon   = lon
+            self.h     = h
+            self.lUnit = lUnit
+            self.hUnit = hUnit
+
+        def __str__(self):
+            return f"{self.lat} {self.lUnit}, {self.lon} {self.lUnit}, {h} {hUnit}"
+
+class Bearing:
+        def __init__(self, bearing: float, unit = Unit.DEGREES):
+             self.bearing = bearing
+             self.unit    = unit
+
+        def __str__(self):
+             return f"{self.bearing} {self.unit.value}"
+        
+        def degrees(self):
+            if self.unit == Unit.DEGREES:
+                return self.bearing
+            else:
+                return self.bearing * radiansToDegrees
+        def radians(self):
+            if (self.unit == Unit.RADIANS):
+                return self.bearing
+            else:
+                return self.bearing * degreesToRadians
+            
+class Distance:
+        def __init__(self, distance: float, unit = Unit.MILES):
+            self.distance = distance
+            self.unit     = unit
+
+        def __str__(self):
+             return f"{self.distance} {self.unit.value}"
+
+        def feet(self):
+            match self.unit:
+                case Unit.FEET:
+                    return self
+                case Unit.MILES:
+                    return Distance(self.distance * milesToFeet, Unit.FEET)
+                case Unit.METERS:
+                    return Distance(self.distance * metersToFeet, Unit.FEET)
+                case Unit.KILOMETERS:
+                    return Distance(self.distance * kilometersToFeet, Unit.FEET)
+                case Unit.NAUTICAL_MILES:
+                    return Distance(self.distance * nauticalMilesToFeet, Unit.FEET)
+                case _:
+                    pass
+                
+        def miles(self):
+            match self.unit:
+                case Unit.FEET:
+                    return Distance(self.distance * feetToMiles, Unit.MILES)
+                case Unit.MILES:
+                    return self
+                case Unit.METERS:
+                    return Distance(self.distance * metersToMiles, Unit.MILES)
+                case Unit.KILOMETERS:
+                    return Distance(self.distance * kilometersToMiles, Unit.MILES)
+                case Unit.NAUTICAL_MILES:
+                    return Distance(self.distance * nauticalMilesToMiles, Unit.MILES)
+                case _:
+                    pass
+
+
+        def meters(self):
+            match self.unit:
+                case Unit.FEET:
+                    return Distance(self.distance * feetToMeters, Unit.METERS)
+                case Unit.MILES:
+                    return Distance(self.distance * milesToMeters, Unit.METERS)
+                case Unit.METERS:
+                    return self
+                case Unit.KILOMETERS:
+                    return Distance(self.distance * kilometersToMeters, Unit.METERS)
+                case Unit.NAUTICAL_MILES:
+                    return Distance(self.distance * nauticalMilesToMeters, Unit.METERS)
+                case _:
+                    pass
+
+        def kilometers(self):
+            match self.unit:
+                case Unit.FEET:
+                    return Distance(self.distance * feetToKilometers, Unit.KILOMETERS)
+                case Unit.MILES:
+                    return Distance(self.distance * milesToKilometers, Unit.KILOMETERS)
+                case Unit.METERS:
+                    return Distance(self.distance * metersToKilometers, Unit.KILOMETERS)
+                case Unit.KILOMETERS:
+                    return self
+                case Unit.NAUTICAL_MILES:
+                    return Distance(self.distance * nauticalMilesToKilometers, Unit.KILOMETERS)
+                case _:
+                    pass
+
+        def nauticalMiles(self):
+            match self.unit:
+                case Unit.FEET:
+                    return Distance(self.distance * feetToNauticalMiles, Unit.NAUTICAL_MILES)
+                case Unit.MILES:
+                    return Distance(self.distance * milesToNauticalMiles, Unit.NAUTICAL_MILES)
+                case Unit.METERS:
+                    return Distance(self.distance * metersToNauticalMiles, Unit.NAUTICAL_MILES)
+                case Unit.KILOMETERS:
+                    return Distance(self.distance * kilometersToNauticalMiles, Unit.NAUTICAL_MILES)
+                case Unit.NAUTICAL_MILES:
+                    return Distance(self)
+                case _:
+                    pass
+       
 #===================================================================================#
 #                                   PARAMETERS                                      #
 #===================================================================================#
-obsLatDeg                  = 33.74475                                               #
-obsLongDeg                 = -118.4107                                              #
-targetBearingDeg           = 290                                                    #
-hMiles                     = 143.5 / feetInMile                                     #
+census                          = Location(33.74475, -118.4107, 143.5 / feetInMile)                                    #
 #===================================================================================#
 
 #
@@ -104,26 +234,29 @@ def binarySearch(needle, haystack):
 def reticleToDistance(reticle):
     return retToMils[binarySearch(round(reticle, 1), retToMils.keys())]
 
-def dumpLatLongTable(fileName, bearingInDegrees, path):
-    if path:
-        f = open(f"{path}{fileName}{bearingInDegrees}.csv", "w")
-    else:
-        f = open(f"{fileName}{bearingInDegrees}.csv", "w")
-    census = (33.74475, -118.4107)
+def dumpLatLongTable(bearing: Bearing):
     print()
+    print(bearing)
     print("Lattitude, Longitude")
-    f.write("Lattitude, Longitude\n")
-    for reticle in arange(0, 20.1, 0.1):
-        d = reticleToDistance(reticle)
-        target = inverse_haversine(census, d[STATUE_MILES], bearingInDegrees * degreesToRadians)
+    for reticle in arange(0, 20.1, 0.1): 
+        d = reticleToDistance(reticle)((census.lat, census.lon), d[STATUE_MILES], bearing.radians())
         print(f"{target[0]},{target[1]}")
-        f.write(f"{target[0]},{target[1]}\n")
-    f.close()
 
 #
 # Main Executable
 #
 if __name__ == "__main__":
     for degrees in range(0, 360, 15):
-        dumpLatLongTable(filenameBase, degrees, directory)
+        bearing = Bearing(degrees, Unit.DEGREES)
+        dumpLatLongTable(bearing)
+
+    d = Distance(17, Unit.MILES)
+    print()
+    print(d.feet())
+    print(d.miles())
+    print(d.meters())
+    print(d.kilometers())
+    print(d.nauticalMiles())
+    print()
+
 
