@@ -46,7 +46,7 @@ radiansToDegrees            = 180 / pi
 #                    CLASSES FOR LOCATION, BEARING AND DISTANCE                     #
 #===================================================================================#
 class Bearing:
-        def __init__(self, bearing: float, unit = None):
+        def __init__(self, bearing: float, unit:Unit = None):
              self.bearing = bearing
              self.unit    = unit
 
@@ -63,9 +63,23 @@ class Bearing:
                 return self.bearing
             else:
                 return self.bearing * degreesToRadians
+
+        def convertTo(self, unit: Unit):
+            if unit == self.unit:
+                return self
+            match unit:
+                case Unit.DEGREES:
+                    return Bearing(self.degrees(), unit)
+                case Unit.RADIANS:
+                    return Bearing(self.radians(), unit)
+                case _:
+                    raise Exception(f"Invalid Bearing unit specified: {unit}")
+                 
+
+            
             
 class Distance:
-        def __init__(self, distance: float, unit = Unit.MILES):
+        def __init__(self, distance: float, unit: Unit = Unit.MILES):
             self.distance = distance
             self.unit     = unit
 
@@ -85,7 +99,8 @@ class Distance:
                 case Unit.NAUTICAL_MILES:
                     return self.distance * nauticalMilesToFeet
                 case _:
-                    pass
+                    raise Exception(f"Invalid Distance unit specified: {unit}")
+
         def miles(self):
             match self.unit:
                 case Unit.FEET:
@@ -99,8 +114,7 @@ class Distance:
                 case Unit.NAUTICAL_MILES:
                     return self.distance * nauticalMilesToMiles
                 case _:
-                    pass
-
+                    raise Exception(f"Invalid Distance unit specified: {unit}")
 
         def meters(self):
             match self.unit:
@@ -115,7 +129,7 @@ class Distance:
                 case Unit.NAUTICAL_MILES:
                     return self.distance * nauticalMilesToMeters
                 case _:
-                    pass
+                    raise Exception(f"Invalid Distance unit specified: {unit}")
 
         def kilometers(self):
             match self.unit:
@@ -130,7 +144,7 @@ class Distance:
                 case Unit.NAUTICAL_MILES:
                     return self.distance * nauticalMilesToKilometers
                 case _:
-                    pass
+                    raise Exception(f"Invalid Distance unit specified: {unit}")
 
         def nauticalMiles(self):
             match self.unit:
@@ -145,12 +159,29 @@ class Distance:
                 case Unit.NAUTICAL_MILES:
                     return self
                 case _:
-                    pass
+                    raise Exception(f"Invalid Distance unit specified: {unit}")
+
+        def convertTo(self, unit: Unit):
+            if unit == self.unit:
+                return self
+            match unit:
+                case Unit.FEET:
+                    return Distance(self.feet(), unit)
+                case Unit.MILES:
+                    return Distance(self.miles(), unit)
+                case Unit.METERS:
+                    return Distance(self.meters(), unit)
+                case Unit.KILOMETERS:
+                    return Distance(self.kilometers(), unit)
+                case Unit.NAUTICAL_MILES:
+                    return Distance(self.nauticalMiles(), unit)
+                case _:
+                    raise Exception(f"Invalid Distance unit specified: {unit}")
 
 class Height:
         def __init__(self, height: float, unit = Unit.MILES):
             self.height = height
-            self.unit     = unit
+            self.unit   = unit
 
         def __str__(self):
              return f"Height: {self.height} {self.unit.value}"
@@ -168,7 +199,7 @@ class Height:
                 case Unit.NAUTICAL_MILES:
                     return self.height * nauticalMilesToFeet
                 case _:
-                    pass
+                    raise Exception(f"Invalid Height unit specified: {unit}")
                 
         def miles(self):
             match self.unit:
@@ -183,7 +214,7 @@ class Height:
                 case Unit.NAUTICAL_MILES:
                     return self.height * nauticalMilesToMiles
                 case _:
-                    pass
+                    raise Exception(f"Invalid Height unit specified: {unit}")
 
 
         def meters(self):
@@ -198,7 +229,7 @@ class Height:
                 case Unit.NAUTICAL_MILES:
                     return self.height * nauticalMilesToMeters
                 case _:
-                    pass
+                    raise Exception(f"Invalid Height unit specified: {unit}")
 
         def kilometers(self):
             match self.unit:
@@ -213,7 +244,7 @@ class Height:
                 case Unit.NAUTICAL_MILES:
                     return self.height * nauticalMilesToKilometers
                 case _:
-                    pass
+                    raise Exception(f"Invalid Height unit specified: {unit}")
 
         def nauticalMiles(self):
             match self.unit:
@@ -228,10 +259,28 @@ class Height:
                 case Unit.NAUTICAL_MILES:
                     return self
                 case _:
-                    pass
+                    raise Exception(f"Invalid Height unit specified: {unit}")
+
+        def convertTo(self, unit: Unit):
+            if unit == self.unit:
+                return self
+            match unit:
+                case Unit.FEET:
+                    return Height(self.feet(), unit)
+                case Unit.MILES:
+                    return Height(self.miles(), unit)
+                case Unit.METERS:
+                    return Height(self.meters(), unit)
+                case Unit.KILOMETERS:
+                    return Height(self.kilometers(), unit)
+                case Unit.NAUTICAL_MILES:
+                    return Height(self.nauticalMiles(), unit)
+                case _:
+                    raise Exception(f"Invalid Height unit specified: {unit}")
+
 
 class Coordinate:
-        def __init__(self, coord: float, unit = Unit.RADIANS):
+        def __init__(self, coord: float, unit: Unit = Unit.RADIANS):
             self.coord  = coord
             self.unit   = unit
 
@@ -253,9 +302,21 @@ class Coordinate:
                 
                 case Unit.RADIANS:
                     return self.coord * radiansToDegrees
+
+        def convertTo(self, unit: Unit):
+            if unit == self.unit:
+                return self
+            match unit:
+                case Unit.DEGREES:
+                    return Coordinate(self.degrees(), unit)
+                case Unit.RADIANS:
+                    return Coordinate(self.radians(), unit)
+                case _:
+                    raise Exception(f"Invalid Coordinate unit specified: {unit}")
+                    
             
 class Location:
-        def __init__(self, lat: float, lon: float, h: Height, cUnit = Unit.DEGREES):
+        def __init__(self, lat: float, lon: float, h: Height, cUnit: Unit = Unit.DEGREES):
             self.lat   = Coordinate(lat, cUnit)
             self.lon   = Coordinate(lon, cUnit)
             self.h     = h
@@ -283,6 +344,16 @@ class Location:
         
         def height(self):
             return self.h
+
+        def convertTo(self, unit: Unit):
+            match unit:
+                case Unit.DEGREES:
+                    return Location(self.lat.degrees(),self.lon.degrees(), self.h, unit)
+                case Unit.RADIANS:
+                    return Location(self.lat.radians(),self.lon.radians(), self.h, unit)
+                case _:
+                    raise Exception(f"Invalid Location unit specified: {unit}")
+
 
 #===================================================================================#
 #                                   CONSTANTS                                       #
@@ -368,7 +439,7 @@ def dumpLatLongTable(observer: Location, bearing: Bearing):
         d = reticleToDistance(reticle)
         target = inverse_haversine(census.latLonRad(), d[DISTANCE].miles(), bearing.radians())
         l = Location(target[0], target[1], 0, Unit.RADIANS)
-        print(f"reticle: {round(reticle, 2)} : {l.latLonDeg()}")
+        print(f"{round(reticle, 2)} - {bearing}: {l.latLonDeg()}")
 
 #
 # Main Executable
@@ -377,3 +448,46 @@ if __name__ == "__main__":
     for degrees in range(0, 360, 15):
         bearing = Bearing(degrees, Unit.DEGREES)
         dumpLatLongTable(census, bearing)
+        print()
+        print("=====================================")
+        print(census.convertTo(Unit.DEGREES))
+        print(census.convertTo(Unit.RADIANS))
+        print()
+        print(bearing.convertTo(Unit.DEGREES))
+        print(bearing.convertTo(Unit.RADIANS))
+        print()
+        d = Distance(.98765, Unit.METERS)
+        print(d)
+        print(d.convertTo(Unit.FEET))
+        print(d.convertTo(Unit.METERS))
+        print(d.convertTo(Unit.KILOMETERS))
+        print(d.convertTo(Unit.MILES))
+        print(d.convertTo(Unit.NAUTICAL_MILES))
+
+        print()
+        h = Height(143.5, Unit.FEET)
+        print(h)
+        print(h.convertTo(Unit.FEET))
+        print(h.convertTo(Unit.METERS))
+        print(h.convertTo(Unit.KILOMETERS))
+        print(h.convertTo(Unit.MILES))
+        print(h.convertTo(Unit.NAUTICAL_MILES))
+
+        print()
+        c = Coordinate(75, Unit.DEGREES)
+        print(c)
+        print(c.convertTo(Unit.RADIANS))
+
+        print()
+        l = Location(33, -118, h, Unit.DEGREES)
+        print(l)
+        print(l.convertTo(Unit.RADIANS))
+
+        print()
+        h = Height(143.5, Unit.FEET)
+        print(h)
+        print(h.convertTo(Unit.FEET))
+        print(h.convertTo(Unit.METERS))
+        print(h.convertTo(Unit.KILOMETERS))
+        print(h.convertTo(Unit.MILES))
+        print(h.convertTo(Unit.NAUTICAL_MILES))
