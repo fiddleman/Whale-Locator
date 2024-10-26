@@ -4,15 +4,14 @@ from math import sin, cos, asin, acos, atan2, sqrt, pi
 from haversine import haversine, inverse_haversine, inverse_haversine_vector, Unit, Direction
 from numpy import arange
 
+#===================================================================================#
+#                                    OUTPUT FILES                                   #
+#===================================================================================#
 directory                   = '/Users/mbi/Documents/Programming/Whale Locator/'
 filenameBase                = 'Test Run - '
+
 #===================================================================================#
-#                                   CONSTANTS                                       #
-#===================================================================================#
-Rmiles                      = 3960                  # Radius of the earth in miles
-feetInMile                  = 5280                  # Number of feet in a mile
-#===================================================================================#
-#                            UNIT CONVERSIONS FACTORS                               #
+#                        UNIT CONVERSIONS FACTOR CONSTANTS                          #
 #===================================================================================#
 feetToMiles                 = 0.000189394
 feetToMeters                = 0.30480030800000379454
@@ -41,26 +40,18 @@ nauticalMilesToKilometers   = 1.852
 
 degreesToRadians            = pi / 180
 radiansToDegrees            = 180 / pi
+
+
 #===================================================================================#
-
-class Location:
-        def __init__(self, lat, lon, h, lUnit = Unit.DEGREES, hUnit = Unit.MILES):
-            self.lat   = lat
-            self.lon   = lon
-            self.h     = h
-            self.lUnit = lUnit
-            self.hUnit = hUnit
-
-        def __str__(self):
-            return f"{self.lat} {self.lUnit}, {self.lon} {self.lUnit}, {h} {hUnit}"
-
+#                    CLASSES FOR LOCATION, BEARING AND DISTANCE                     #
+#===================================================================================#
 class Bearing:
-        def __init__(self, bearing: float, unit = Unit.DEGREES):
+        def __init__(self, bearing: float, unit = None):
              self.bearing = bearing
              self.unit    = unit
 
         def __str__(self):
-             return f"{self.bearing} {self.unit.value}"
+             return f"Bearing: {self.bearing} {self.unit.value}"
         
         def degrees(self):
             if self.unit == Unit.DEGREES:
@@ -79,35 +70,34 @@ class Distance:
             self.unit     = unit
 
         def __str__(self):
-             return f"{self.distance} {self.unit.value}"
+             return f"Distance: {self.distance} {self.unit.value}"
 
         def feet(self):
             match self.unit:
                 case Unit.FEET:
-                    return self
+                    return self.distance
                 case Unit.MILES:
-                    return Distance(self.distance * milesToFeet, Unit.FEET)
+                    return self.distance * milesToFeet
                 case Unit.METERS:
-                    return Distance(self.distance * metersToFeet, Unit.FEET)
+                    return self.distance * metersToFeet
                 case Unit.KILOMETERS:
-                    return Distance(self.distance * kilometersToFeet, Unit.FEET)
+                    return self.distance * kilometersToFeet
                 case Unit.NAUTICAL_MILES:
-                    return Distance(self.distance * nauticalMilesToFeet, Unit.FEET)
+                    return self.distance * nauticalMilesToFeet
                 case _:
                     pass
-                
         def miles(self):
             match self.unit:
                 case Unit.FEET:
-                    return Distance(self.distance * feetToMiles, Unit.MILES)
+                    return self.distance * feetToMiles
                 case Unit.MILES:
                     return self
                 case Unit.METERS:
-                    return Distance(self.distance * metersToMiles, Unit.MILES)
+                    return self.distance * metersToMiles
                 case Unit.KILOMETERS:
-                    return Distance(self.distance * kilometersToMiles, Unit.MILES)
+                    return self.distance * kilometersToMiles
                 case Unit.NAUTICAL_MILES:
-                    return Distance(self.distance * nauticalMilesToMiles, Unit.MILES)
+                    return self.distance * nauticalMilesToMiles
                 case _:
                     pass
 
@@ -115,100 +105,238 @@ class Distance:
         def meters(self):
             match self.unit:
                 case Unit.FEET:
-                    return Distance(self.distance * feetToMeters, Unit.METERS)
+                    return self.distance * feetToMeters
                 case Unit.MILES:
-                    return Distance(self.distance * milesToMeters, Unit.METERS)
+                    return self.distance * milesToMeters
                 case Unit.METERS:
                     return self
                 case Unit.KILOMETERS:
-                    return Distance(self.distance * kilometersToMeters, Unit.METERS)
+                    return self.distance * kilometersToMeters
                 case Unit.NAUTICAL_MILES:
-                    return Distance(self.distance * nauticalMilesToMeters, Unit.METERS)
+                    return self.distance * nauticalMilesToMeters
                 case _:
                     pass
 
         def kilometers(self):
             match self.unit:
                 case Unit.FEET:
-                    return Distance(self.distance * feetToKilometers, Unit.KILOMETERS)
+                    return self.distance * feetToKilometers
                 case Unit.MILES:
-                    return Distance(self.distance * milesToKilometers, Unit.KILOMETERS)
+                    return self.distance * milesToKilometers
                 case Unit.METERS:
-                    return Distance(self.distance * metersToKilometers, Unit.KILOMETERS)
+                    return self.distance * metersToKilometers
                 case Unit.KILOMETERS:
                     return self
                 case Unit.NAUTICAL_MILES:
-                    return Distance(self.distance * nauticalMilesToKilometers, Unit.KILOMETERS)
+                    return self.distance * nauticalMilesToKilometers
                 case _:
                     pass
 
         def nauticalMiles(self):
             match self.unit:
                 case Unit.FEET:
-                    return Distance(self.distance * feetToNauticalMiles, Unit.NAUTICAL_MILES)
+                    return self.distance * feetToNauticalMiles
                 case Unit.MILES:
-                    return Distance(self.distance * milesToNauticalMiles, Unit.NAUTICAL_MILES)
+                    return self.distance * milesToNauticalMiles
                 case Unit.METERS:
-                    return Distance(self.distance * metersToNauticalMiles, Unit.NAUTICAL_MILES)
+                    return self.distance * metersToNauticalMiles
                 case Unit.KILOMETERS:
-                    return Distance(self.distance * kilometersToNauticalMiles, Unit.NAUTICAL_MILES)
+                    return self.distance * kilometersToNauticalMiles
                 case Unit.NAUTICAL_MILES:
-                    return Distance(self)
+                    return self
                 case _:
                     pass
-       
+
+class Height:
+        def __init__(self, height: float, unit = Unit.MILES):
+            self.height = height
+            self.unit     = unit
+
+        def __str__(self):
+             return f"Height: {self.height} {self.unit.value}"
+
+        def feet(self):
+            match self.unit:
+                case Unit.FEET:
+                    return self
+                case Unit.MILES:
+                    return self.height * milesToFeet
+                case Unit.METERS:
+                    return self.height * metersToFeet
+                case Unit.KILOMETERS:
+                    return self.height * kilometersToFeet
+                case Unit.NAUTICAL_MILES:
+                    return self.height * nauticalMilesToFeet
+                case _:
+                    pass
+                
+        def miles(self):
+            match self.unit:
+                case Unit.FEET:
+                    return self.height * feetToMiles
+                case Unit.MILES:
+                    return self
+                case Unit.METERS:
+                    return self.height * metersToMiles
+                case Unit.KILOMETERS:
+                    return self.height * kilometersToMiles
+                case Unit.NAUTICAL_MILES:
+                    return self.height * nauticalMilesToMiles
+                case _:
+                    pass
+
+
+        def meters(self):
+            match self.unit:
+                case Unit.FEET:
+                    return self.height * feetToMeters
+                case Unit.MILES:
+                    return self.height * milesToMeters, Unit.METERS
+                    return self
+                case Unit.KILOMETERS:
+                    return self.height * kilometersToMeters
+                case Unit.NAUTICAL_MILES:
+                    return self.height * nauticalMilesToMeters
+                case _:
+                    pass
+
+        def kilometers(self):
+            match self.unit:
+                case Unit.FEET:
+                    return self.height * feetToKilometers
+                case Unit.MILES:
+                    return self.height * milesToKilometers
+                case Unit.METERS:
+                    return self.height * metersToKilometers
+                case Unit.KILOMETERS:
+                    return self
+                case Unit.NAUTICAL_MILES:
+                    return self.height * nauticalMilesToKilometers
+                case _:
+                    pass
+
+        def nauticalMiles(self):
+            match self.unit:
+                case Unit.FEET:
+                    return self.height * feetToNauticalMiles
+                case Unit.MILES:
+                    return self.height * milesToNauticalMiles
+                case Unit.METERS:
+                    return self.height * metersToNauticalMiles
+                case Unit.KILOMETERS:
+                    return self.height * kilometersToNauticalMiles
+                case Unit.NAUTICAL_MILES:
+                    return self
+                case _:
+                    pass
+
+class Coordinate:
+        def __init__(self, coord: float, unit = Unit.RADIANS):
+            self.coord  = coord
+            self.unit   = unit
+
+        def __str__(self):
+            return f"Coordinate: {self.coord} {self.unit.value}"
+        
+        def radians(self):
+            match self.unit:
+                case Unit.DEGREES:
+                    return self.coord * degreesToRadians
+                
+                case Unit.RADIANS:
+                    return self.coord
+            
+        def degrees(self):
+            match self.unit:
+                case Unit.DEGREES:
+                    return self.coord
+                
+                case Unit.RADIANS:
+                    return self.coord * radiansToDegrees
+            
+class Location:
+        def __init__(self, lat: float, lon: float, h: Height, cUnit = Unit.DEGREES):
+            self.lat   = Coordinate(lat, cUnit)
+            self.lon   = Coordinate(lon, cUnit)
+            self.h     = h
+
+        def __str__(self):
+            return f"Location: {self.lat}, {self.lon}, {self.h}"
+        
+        def latRad(self):
+            return self.lat.radians()
+        
+        def latDeg(self):
+            return self.lat.degrees()
+        
+        def lonRad(self):
+            return self.lon.radians()
+        
+        def lonDeg(self):
+            return self.lon.degrees()
+        
+        def latLonRad(self):
+            return self.latRad(), self.lonRad()
+        
+        def latLonDeg(self):
+            return self.latDeg(), self.lonDeg()
+        
+        def height(self):
+            return self.h
+
+#===================================================================================#
+#                                   CONSTANTS                                       #
+#===================================================================================#
+R                           = Distance(3960, Unit.MILES)                            # Radius of the earth
+
 #===================================================================================#
 #                                   PARAMETERS                                      #
 #===================================================================================#
-census                          = Location(33.74475, -118.4107, 143.5 / feetInMile)                                    #
+census                          = Location(33.74475, -118.4107, Height(143.5, Unit.FEET))
 #===================================================================================#
 
 #
 # Reticle to Mills Table
 #
 MILS            = 0
-METERS          = 1
-KILOMETERS      = 2
-FEET            = 3
-STATUE_MILES    = 4
-NAUTICAL_MILES  = 5
+DISTANCE        = 1
 
 retToMils = {
-#   RETICLE MILS    METERS      KILOMETERS  FEET            STATUTE MILES   NAUTICAL MILES
-    0:      (0,     23599.00,   23.60,      77424.54,       14.66,          12.74),
-    0.1:    (0.5,   14021.00,   14.02,      46000.66,       8.71,           7.57),
-    0.2:    (1,     11390.00,   11.39,      37368.77,       7.08,           6.15),
-    0.4:    (2,     8598.00,    8.60,       28208.66,       5.34,           4.64),
-    0.6:    (3,     7010.00,    7.01,       22998.69,       4.36,           3.79),
-    0.8:    (4,     5950.00,    5.95,       19521.00,       3.70,           3.21),
-    1:      (5,     5183.00,    5.18,       17004.59,       3.22,           2.80),
-    1.2:    (6,     4598.00,    4.60,       15085.30,       2.86,           2.48),
-    1.4:    (7,     4135.00,    4.14,       13566.27,       2.57,           2.23),
-    1.6:    (8,     3759.00,    3.76,       12332.68,       2.34,           2.03),
-    1.8:    (9,     3448.00,    3.45,       11312.34,       2.14,           1.86),
-    2:      (10,    3184.00,    3.18,       10446.19,       1.98,           1.72),
-    2.4:    (12,    2764.00,    2.76,       9068.24,        1.72,           1.49),
-    2.6:    (13,    2593.00,    2.59,       8507.22,        1.61,           1.40),
-    3:      (15,    2309.00,    2.31,       7575.46,        1.43,           1.25),
-    3.4:    (17,    2081.00,    2.08,       6827.43,        1.29,           1.12),
-    4:      (20,    1813.00,    1.81,       5948.16,        1.13,           0.98),
-    4.6:    (23,    1607.00,    1.61,       5272.31,        1.00,           0.87),
-    5:      (25,    1493.00,    1.49,       4898.29,        0.93,           0.81),
-    6:      (30,    1269.00,    1.27,       4163.39,        0.79,           0.69),
-    7:      (35,    1104.00,    1.10,       3622.05,        0.69,           0.60),
-    8:      (40,    977.00,     0.98,       3205.38,        0.61,           0.53),
-    9:      (45,    876.00,     0.88,       2874.02,        0.54,           0.47),
-    10:     (50,    794.00,     0.79,       2604.99,        0.49,           0.43),
-    11:     (55,    726.00,     0.73,       2381.89,        0.45,           0.39),
-    12:     (60,    669.00,     0.67,       2194.88,        0.42,           0.36),
-    13:     (65,    620.00,     0.62,       2034.12,        0.39,           0.33),
-    14:     (70,    577.00,     0.58,       1893.04,        0.36,           0.31),
-    15:     (75,    540.00,     0.54,       1771.65,        0.34,           0.29),
-    16:     (80,    508.00,     0.51,       1666.67,        0.32,           0.27),
-    17:     (85,    479.00,     0.48,       1571.52,        0.30,           0.26),
-    18:     (90,    453.00,     0.45,       1486.22,        0.28,           0.24),
-    19:     (95,    430.00,     0.43,       1410.76,        0.27,           0.23),
-    20:     (100,   409.00,     0.41,       1341.86,        0.25,           0.22)
+#   RETICLE MILS    METERS
+    0:      (0,     Distance(23599.00, Unit.METERS)),
+    0.1:    (0.5,   Distance(14021.00, Unit.METERS)),
+    0.2:    (1,     Distance(11390.00, Unit.METERS)),
+    0.4:    (2,     Distance( 8598.00, Unit.METERS)),
+    0.6:    (3,     Distance( 7010.00, Unit.METERS)),
+    0.8:    (4,     Distance( 5950.00, Unit.METERS)),
+    1:      (5,     Distance( 5183.00, Unit.METERS)),
+    1.2:    (6,     Distance( 4598.00, Unit.METERS)),
+    1.4:    (7,     Distance( 4135.00, Unit.METERS)),
+    1.6:    (8,     Distance( 3759.00, Unit.METERS)),
+    1.8:    (9,     Distance( 3448.00, Unit.METERS)),
+    2:      (10,    Distance( 3184.00, Unit.METERS)),
+    2.4:    (12,    Distance( 2764.00, Unit.METERS)),
+    2.6:    (13,    Distance( 2593.00, Unit.METERS)),
+    3:      (15,    Distance( 2309.00, Unit.METERS)),
+    3.4:    (17,    Distance( 2081.00, Unit.METERS)),
+    4:      (20,    Distance( 1813.00, Unit.METERS)),
+    4.6:    (23,    Distance( 1607.00, Unit.METERS)),
+    5:      (25,    Distance( 1493.00, Unit.METERS)),
+    6:      (30,    Distance( 1269.00, Unit.METERS)),
+    7:      (35,    Distance( 1104.00, Unit.METERS)),
+    8:      (40,    Distance(  977.00, Unit.METERS)),
+    9:      (45,    Distance(  876.00, Unit.METERS)),
+    10:     (50,    Distance(  794.00, Unit.METERS)),
+    11:     (55,    Distance(  726.00, Unit.METERS)),
+    12:     (60,    Distance(  669.00, Unit.METERS)),
+    13:     (65,    Distance(  620.00, Unit.METERS)),
+    14:     (70,    Distance(  577.00, Unit.METERS)),
+    15:     (75,    Distance(  540.00, Unit.METERS)),
+    16:     (80,    Distance(  508.00, Unit.METERS)),
+    17:     (85,    Distance(  479.00, Unit.METERS)),
+    18:     (90,    Distance(  453.00, Unit.METERS)),
+    19:     (95,    Distance(  430.00, Unit.METERS)),
+    20:     (100,   Distance(  409.00, Unit.METERS))
 }
 
 def binarySearch(needle, haystack):
@@ -234,13 +362,13 @@ def binarySearch(needle, haystack):
 def reticleToDistance(reticle):
     return retToMils[binarySearch(round(reticle, 1), retToMils.keys())]
 
-def dumpLatLongTable(bearing: Bearing):
-    print()
-    print(bearing)
-    print("Lattitude, Longitude")
+def dumpLatLongTable(observer: Location, bearing: Bearing):
+    # print("Lattitude, Longitude")
     for reticle in arange(0, 20.1, 0.1): 
-        d = reticleToDistance(reticle)((census.lat, census.lon), d[STATUE_MILES], bearing.radians())
-        print(f"{target[0]},{target[1]}")
+        d = reticleToDistance(reticle)
+        target = inverse_haversine(census.latLonRad(), d[DISTANCE].miles(), bearing.radians())
+        l = Location(target[0], target[1], 0, Unit.RADIANS)
+        print(f"reticle: {round(reticle, 2)} : {l.latLonDeg()}")
 
 #
 # Main Executable
@@ -248,15 +376,4 @@ def dumpLatLongTable(bearing: Bearing):
 if __name__ == "__main__":
     for degrees in range(0, 360, 15):
         bearing = Bearing(degrees, Unit.DEGREES)
-        dumpLatLongTable(bearing)
-
-    d = Distance(17, Unit.MILES)
-    print()
-    print(d.feet())
-    print(d.miles())
-    print(d.meters())
-    print(d.kilometers())
-    print(d.nauticalMiles())
-    print()
-
-
+        dumpLatLongTable(census, bearing)
