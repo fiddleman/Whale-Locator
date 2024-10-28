@@ -5,12 +5,6 @@ from haversine import haversine, inverse_haversine, inverse_haversine_vector, Un
 from numpy import arange
 
 #===================================================================================#
-#                                    OUTPUT FILES                                   #
-#===================================================================================#
-directory                   = '/Users/mbi/Documents/Programming/Whale Locator/'
-filenameBase                = 'Test Run - '
-
-#===================================================================================#
 #                        UNIT CONVERSIONS FACTOR CONSTANTS                          #
 #===================================================================================#
 feetToMiles                 = 0.000189394
@@ -41,7 +35,7 @@ nauticalMilesToKilometers   = 1.852
 degreesToRadians            = pi / 180
 radiansToDegrees            = 180 / pi
 
-
+horizonCoefficient          = 1.22459
 #===================================================================================#
 #                    CLASSES FOR LOCATION, BEARING AND DISTANCE                     #
 #===================================================================================#
@@ -106,7 +100,7 @@ class Distance:
                 case Unit.FEET:
                     return self.distance * feetToMiles
                 case Unit.MILES:
-                    return self
+                    return self.distance
                 case Unit.METERS:
                     return self.distance * metersToMiles
                 case Unit.KILOMETERS:
@@ -123,7 +117,7 @@ class Distance:
                 case Unit.MILES:
                     return self.distance * milesToMeters
                 case Unit.METERS:
-                    return self
+                    return self.distance
                 case Unit.KILOMETERS:
                     return self.distance * kilometersToMeters
                 case Unit.NAUTICAL_MILES:
@@ -140,7 +134,7 @@ class Distance:
                 case Unit.METERS:
                     return self.distance * metersToKilometers
                 case Unit.KILOMETERS:
-                    return self
+                    return self.distance
                 case Unit.NAUTICAL_MILES:
                     return self.distance * nauticalMilesToKilometers
                 case _:
@@ -157,7 +151,7 @@ class Distance:
                 case Unit.KILOMETERS:
                     return self.distance * kilometersToNauticalMiles
                 case Unit.NAUTICAL_MILES:
-                    return self
+                    return self.distance
                 case _:
                     raise Exception(f"Invalid Distance unit specified: {unit}")
 
@@ -189,7 +183,7 @@ class Height:
         def feet(self):
             match self.unit:
                 case Unit.FEET:
-                    return self
+                    return self.height
                 case Unit.MILES:
                     return self.height * milesToFeet
                 case Unit.METERS:
@@ -206,7 +200,7 @@ class Height:
                 case Unit.FEET:
                     return self.height * feetToMiles
                 case Unit.MILES:
-                    return self
+                    return self.height
                 case Unit.METERS:
                     return self.height * metersToMiles
                 case Unit.KILOMETERS:
@@ -222,8 +216,9 @@ class Height:
                 case Unit.FEET:
                     return self.height * feetToMeters
                 case Unit.MILES:
-                    return self.height * milesToMeters, Unit.METERS
-                    return self
+                    return self.height * milesToMeters
+                case Unit.METERS:
+                    return self.height
                 case Unit.KILOMETERS:
                     return self.height * kilometersToMeters
                 case Unit.NAUTICAL_MILES:
@@ -240,7 +235,7 @@ class Height:
                 case Unit.METERS:
                     return self.height * metersToKilometers
                 case Unit.KILOMETERS:
-                    return self
+                    return self.height
                 case Unit.NAUTICAL_MILES:
                     return self.height * nauticalMilesToKilometers
                 case _:
@@ -257,7 +252,7 @@ class Height:
                 case Unit.KILOMETERS:
                     return self.height * kilometersToNauticalMiles
                 case Unit.NAUTICAL_MILES:
-                    return self
+                    return self.height
                 case _:
                     raise Exception(f"Invalid Height unit specified: {unit}")
 
@@ -365,81 +360,34 @@ R                           = Distance(3960, Unit.MILES)                        
 #===================================================================================#
 census                          = Location(33.74475, -118.4107, Height(143.5, Unit.FEET))
 #===================================================================================#
-
-#
-# Reticle to Mills Table
-#
-MILS            = 0
-DISTANCE        = 1
-
-retToMils = {
-#   RETICLE MILS    METERS
-    0:      (0,     Distance(23599.00, Unit.METERS)),
-    0.1:    (0.5,   Distance(14021.00, Unit.METERS)),
-    0.2:    (1,     Distance(11390.00, Unit.METERS)),
-    0.4:    (2,     Distance( 8598.00, Unit.METERS)),
-    0.6:    (3,     Distance( 7010.00, Unit.METERS)),
-    0.8:    (4,     Distance( 5950.00, Unit.METERS)),
-    1:      (5,     Distance( 5183.00, Unit.METERS)),
-    1.2:    (6,     Distance( 4598.00, Unit.METERS)),
-    1.4:    (7,     Distance( 4135.00, Unit.METERS)),
-    1.6:    (8,     Distance( 3759.00, Unit.METERS)),
-    1.8:    (9,     Distance( 3448.00, Unit.METERS)),
-    2:      (10,    Distance( 3184.00, Unit.METERS)),
-    2.4:    (12,    Distance( 2764.00, Unit.METERS)),
-    2.6:    (13,    Distance( 2593.00, Unit.METERS)),
-    3:      (15,    Distance( 2309.00, Unit.METERS)),
-    3.4:    (17,    Distance( 2081.00, Unit.METERS)),
-    4:      (20,    Distance( 1813.00, Unit.METERS)),
-    4.6:    (23,    Distance( 1607.00, Unit.METERS)),
-    5:      (25,    Distance( 1493.00, Unit.METERS)),
-    6:      (30,    Distance( 1269.00, Unit.METERS)),
-    7:      (35,    Distance( 1104.00, Unit.METERS)),
-    8:      (40,    Distance(  977.00, Unit.METERS)),
-    9:      (45,    Distance(  876.00, Unit.METERS)),
-    10:     (50,    Distance(  794.00, Unit.METERS)),
-    11:     (55,    Distance(  726.00, Unit.METERS)),
-    12:     (60,    Distance(  669.00, Unit.METERS)),
-    13:     (65,    Distance(  620.00, Unit.METERS)),
-    14:     (70,    Distance(  577.00, Unit.METERS)),
-    15:     (75,    Distance(  540.00, Unit.METERS)),
-    16:     (80,    Distance(  508.00, Unit.METERS)),
-    17:     (85,    Distance(  479.00, Unit.METERS)),
-    18:     (90,    Distance(  453.00, Unit.METERS)),
-    19:     (95,    Distance(  430.00, Unit.METERS)),
-    20:     (100,   Distance(  409.00, Unit.METERS))
-}
-
-def binarySearch(needle, haystack):
-    first = 0
-    itemList = list(haystack)
-    last = len(itemList) - 1
-    while first <= last:
-        mid = (first + last) // 2
-        if itemList[mid] == needle:
-            return needle
-        elif needle < itemList[mid]:
-            last = mid - 1
+def reticleToDistance(observer, reticle):
+        h = observer.height().meters()
+        m = reticle * 5
+        if m < 0:
+            raise(Exception(f"Mils cannot be negative: {m}"))
+        if m > 0:
+            return Distance(round(h * 1000 / m, 1), Unit.METERS)
         else:
-            first = mid + 1
+            return Distance(horizonCoefficient * sqrt(h), Unit.METERS)
 
-    low = itemList[mid - 1]
-    high = itemList[mid]
-    if abs(needle - high) <= abs(needle - low):
-        return high
-    else:
-        return low
-    
-def reticleToDistance(reticle):
-    return retToMils[binarySearch(round(reticle, 1), retToMils.keys())]
-
+#===================================================================================#
+#                                    OUTPUT FILES                                   #
+#===================================================================================#
+directory                   = '/Users/mbi/Documents/Programming/Whale Locator/'
+filenameBase                = 'Test Run - '
 def dumpLatLongTable(observer: Location, bearing: Bearing):
-    # print("Lattitude, Longitude")
-    for reticle in arange(0, 20.1, 0.1): 
-        d = reticleToDistance(reticle)
-        target = inverse_haversine(census.latLonRad(), d[DISTANCE].miles(), bearing.radians())
+    if directory:
+        f = open(f"{directory}{filenameBase}{bearing.degrees()}.csv", "w")
+    else:
+        f = open(f"{filenameBase}{bearing.degrees()}.csv", "w")
+
+    f.write("Lattitude, Longitude\n")
+    for reticle in arange(0, 20.1, 0.1):
+        d = reticleToDistance(observer, reticle)
+        target = inverse_haversine(census.latLonRad(), d.miles(), bearing.radians())
         l = Location(target[0], target[1], 0, Unit.RADIANS)
-        print(f"{round(reticle, 2)} - {bearing}: {l.latLonDeg()}")
+        # print(f"{l.latDeg()}, {l.lonDeg()}")
+        f.write(f"{l.latDeg()}, {l.lonDeg()}\n")
 
 #
 # Main Executable
@@ -448,46 +396,3 @@ if __name__ == "__main__":
     for degrees in range(0, 360, 15):
         bearing = Bearing(degrees, Unit.DEGREES)
         dumpLatLongTable(census, bearing)
-        print()
-        print("=====================================")
-        print(census.convertTo(Unit.DEGREES))
-        print(census.convertTo(Unit.RADIANS))
-        print()
-        print(bearing.convertTo(Unit.DEGREES))
-        print(bearing.convertTo(Unit.RADIANS))
-        print()
-        d = Distance(.98765, Unit.METERS)
-        print(d)
-        print(d.convertTo(Unit.FEET))
-        print(d.convertTo(Unit.METERS))
-        print(d.convertTo(Unit.KILOMETERS))
-        print(d.convertTo(Unit.MILES))
-        print(d.convertTo(Unit.NAUTICAL_MILES))
-
-        print()
-        h = Height(143.5, Unit.FEET)
-        print(h)
-        print(h.convertTo(Unit.FEET))
-        print(h.convertTo(Unit.METERS))
-        print(h.convertTo(Unit.KILOMETERS))
-        print(h.convertTo(Unit.MILES))
-        print(h.convertTo(Unit.NAUTICAL_MILES))
-
-        print()
-        c = Coordinate(75, Unit.DEGREES)
-        print(c)
-        print(c.convertTo(Unit.RADIANS))
-
-        print()
-        l = Location(33, -118, h, Unit.DEGREES)
-        print(l)
-        print(l.convertTo(Unit.RADIANS))
-
-        print()
-        h = Height(143.5, Unit.FEET)
-        print(h)
-        print(h.convertTo(Unit.FEET))
-        print(h.convertTo(Unit.METERS))
-        print(h.convertTo(Unit.KILOMETERS))
-        print(h.convertTo(Unit.MILES))
-        print(h.convertTo(Unit.NAUTICAL_MILES))
